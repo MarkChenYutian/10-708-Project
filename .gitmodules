@@ -1,0 +1,16 @@
+[submodule "Baseline/DPVO"]
+	path = Baseline/DPVO
+	url = git@github.com:MAC-VO/S_DPVO.git
+	update = merge
+[submodule "Module/Network/UniCeption"]
+	path = Module/Network/UniCeption
+	url = git@github.com:castacks/UniCeption.git
+[submodule "Module/Network/FlowFormer"]
+	url = git@github.com:MAC-VO/S_FlowFormer.git
+	path = Module/Network/FlowFormer
+[submodule "Module/Network/UniMatch"]
+	path = Module/Network/UniMatch
+	url = git@github.com:MAC-VO/S_UniMatch.git
+[submodule "Module/Network/GMFlow"]
+	path = Module/Network/GMFlow
+	url = git@github.com:MAC-VO/S_GMFlow.git

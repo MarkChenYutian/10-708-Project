@@ -1,0 +1,18 @@
+type: UniMatchStereoDepth
+args:
+  weight: ./Model/UniMatch/gmstereo-scale2-regrefine3-resumeflowthings-mixdata.pth
+  device: cuda
+  task: stereo
+  num_refine: 3
+
+  num_scales: 2
+  feature_channels: 128
+  upsample_factor: 4
+  num_head: 1
+  ffn_dim_expansion: 4
+  num_transformer_layer: 6
+  attn_type: self_swin2d_cross_swin1d
+
+  attn_splits_list: [2, 8]
+  corr_radius_list: [-1, 4]
+  prop_radius_list: [-1, 1]

@@ -1,0 +1,33 @@
+[tool.pytest.ini_options]
+testpaths = [
+    "./Scripts/UnitTest",
+]
+pythonpath = [
+    "."
+]
+markers = [
+    "local: marks tests that should only run locally (deselect with '-m \"not local\"')",
+    "trt: marks tests that requires TensorRT to run (deselect with '-m \"not trt\"')"
+]
+
+[tool.pyright]
+include = [
+    "DataLoader", "Evaluation", "Module", "Odometry",
+    "Scripts", "Train", "Utility", "*.py", "Baseline"
+]
+exclude = [
+    "./Module/Network/PWCNet",              # Third-party lib
+    "./Module/Network/FlowFormer",          # Third-party lib
+    "./Module/Network/GMFlow",              # Third-party lib
+    "./Module/Network/UniMatch",            # Third-party lib
+    "./Module/Network/UniCeption",          # Third-party lib
+    "./Odometry/BaselineDPVO.py",           # Need install DPVO and compile cuda kernel
+    "./Baseline/DPVO",                      # Need install DPVO and compile cuda kernel
+    "./Scripts/AdHoc/FLOPS_analyzer.py",    # Need additional package fvcore
+]
+typeCheckingMode = "standard"
+reportImportCycles = "information"
+reportDuplicateImport = "error"
+reportAbstractUsage = "error"
+reportPrivateImportUsage = "information"
+stubPath = "./stubs"

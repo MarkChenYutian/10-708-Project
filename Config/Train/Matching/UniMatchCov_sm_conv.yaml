@@ -1,0 +1,74 @@
+Model:
+  name: "UniMatchCov_scale1Conv"
+  batch_size: 24
+  sum_freq: 100
+  val_freq: 5000000
+  add_noise: True
+  image_scale: 1
+
+  max_flow: 400
+  gamma   : 0.8
+  cov_mask: False
+
+  # UniMatch model
+  restore_ckpt: ./Model/UniMatch/gmflow-scale1-mixdata.pth
+  cov_ckpts: ./Model/Cov/UniMatchCov_scale1.pth
+  args:
+      task: &task flow
+      reg_refine: false
+      num_scales: 1
+      feature_channels: 128
+      upsample_factor: 8
+      num_head: 1
+      ffn_dim_expansion: 4
+      num_transformer_layers: 6
+      cov_model: "ConvCovHead"
+  
+  fwd_args:
+      attn_type: swin
+      num_reg_refine: 0
+      attn_splits_list: [2]
+      corr_radius_list: [-1]
+      prop_radius_list: [-1]
+      task: *task
+
+  ### TRAINER
+  training_mode: cov
+
+  clip          : 1.0
+  num_steps     : &num_steps 120000
+  autosave_freq : 5000
+  log_freq      : 100
+  
+  optimizer:
+    type: "AdamW"
+    args:
+      lr          : &lr 12.5e-5
+      weight_decay: 1.0e-5
+      eps         : 1.0e-8
+
+  scheduler:
+    type: "OneCycleLR"
+    args: 
+      total_steps: *num_steps
+      pct_start: 0.05
+      cycle_momentum: False
+      max_lr: *lr
+      anneal_strategy: "linear"
+
+  folderlength: None
+  num_workers: 0
+  seed: 1234
+  
+  mixed_precision: False
+  datatype: bf16
+
+Train:
+  data: !flatten_seq 
+    # - !include ../Sequence/Training_Dataset/TartanAir_Demo.yaml
+    - !include ../../Sequence/Training_Dataset/TartanAir_Train.yaml
+    - !include ../../Sequence/Training_Dataset/TartanAir_TrainHard.yaml
+
+Evaluate:
+  data: !flatten_seq 
+    - !include ../../Sequence/Training_Dataset/TartanAirV2_Test.yaml

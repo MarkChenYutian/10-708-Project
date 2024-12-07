@@ -1,0 +1,67 @@
+Trainer:
+  device: &device cuda
+  batch_size: 4
+  save_freq : 1024
+  log_freq  : 16
+
+  lr: 1.e-4
+  weight_decay: 1.e-4
+
+  niter_schedule:
+    opt_niter: [1, 2]
+    opt_steps: [16384]
+
+
+System:
+  args:
+    numPoints: 200
+    edge_width: 16
+
+  learn_obscov:
+    type: LearningCovariance
+    args:
+      eval_mode: false
+      modifier:
+        type: ResidualCNNModifier
+        args:
+          device: *device
+          patch_size: 15
+  
+  ref_obscov:
+    type: MatchCovariance
+    args:
+      device: *device
+      kernel_size: 15
+      match_cov_default: 0.25
+      min_depth_cov: 0.05
+      min_flow_cov: 0.25
+  
+  keypoint:
+    type: GridSelector
+    args:
+      device: *device
+      mask_width: 32
+  
+  frontend:
+    type: TRT_FlowFormerCovFrontend
+    args:
+      device: *device
+      eval_mode: true
+      weight: ./Model/MACVO_FrontendCov.pth
+      dtype: fp16
+      max_flow: -1
+      enforce_positive_disparity: false
+
+Train:
+  data: !flatten_seq 
+    - !include ../../Sequence/Training_Dataset/TartanAir_Train.yaml
+  preprocess:
+    - type: SmartResizeFrame
+      args: 
+        height: 480
+        width : 640
+        interp: nearest
+
+Evaluate:
+  data: !flatten_seq 
+    - !include ../../Sequence/Training_Dataset/TartanAirV2_Demo.yaml

@@ -1,0 +1,116 @@
+Common:
+  # Some configurations are shared across multiple modules in Odometry, so I write them here.
+  device: &device cuda
+  max_depth: &max_depth auto
+
+Odometry:
+  name: UniMatch
+  args:
+    # Device directive to the VO system
+    # NOTE: the system may not follow this device config strictly since some module
+    # e.g. those rely on PWC-Net, only support running on cuda device.
+    device: *device
+    edgewidth: 32
+    num_point: 200 # Upper bound of KPs in each frame
+
+    # Match covariance for keypoint on first observation (sub-pixel uncertainty
+    # caused by the quantized pixel)
+    match_cov_default: 0.25
+
+    # Profiling the system using torch, generate chrome json trace file.
+    profile: false
+
+  cov:
+    obs:
+      type: NoCovariance
+      args:
+
+  keypoint:
+    type: GridSelector
+    args:
+      mask_width: 32
+      device: *device
+
+  frontend:
+    type: FrontendCompose
+    args:
+      match:
+        type: UniMatchMatcher
+        args:
+          weight: ./Model/UniMatch/gmflow-scale2-regrefine6-mixdata.pth
+          device: cuda
+          task: flow
+          num_refine: 6
+
+          num_scales: 2
+          feature_channels: 128
+          upsample_factor: 4
+          num_head: 1
+          ffn_dim_expansion: 4
+          num_transformer_layer: 6
+          attn_type: swin
+
+          attn_splits_list: [2, 8]
+          corr_radius_list: [-1, 4]
+          prop_radius_list: [-1, 1]
+
+ 
+      depth:
+        type: UniMatchStereoDepth
+        args:
+          weight: ./Model/UniMatch/gmstereo-scale2-regrefine3-resumeflowthings-mixdata.pth
+          device: cuda
+          task: stereo
+          num_refine: 3
+
+          num_scales: 2
+          feature_channels: 128
+          upsample_factor: 4
+          num_head: 1
+          ffn_dim_expansion: 4
+          num_transformer_layer: 6
+          attn_type: self_swin2d_cross_swin1d
+
+          attn_splits_list: [2, 8]
+          corr_radius_list: [-1, 4]
+          prop_radius_list: [-1, 1]
+
+
+
+  motion:
+    type: TartanMotionNet
+    args:
+      weight: ./Model/MACVO_posenet.pkl
+      device: *device
+
+  outlier:
+    type: FilterCompose
+    args:
+      filter_args:
+        - type: SimpleDepthFilter
+          args:
+            min_depth: 0.05
+            max_depth: *max_depth
+  
+  postprocess:
+    type: DisplacementInterpolate
+    args:
+  
+  keyframe:
+    type: AllKeyframe
+    args:
+  
+  optimizer:
+    type: PyPoseTwoFramePGO
+    args:
+      device: cpu
+      vectorize: true
+      parallel: true
+
+Datas: !flatten_seq
+  - !include  ../../../Sequence/EuRoC.yaml
+  - !include ../../../Sequence/KITTI.yaml
+  - !include  ../../../Sequence/TartanAir2_Test.yaml
+
+
+Preprocess: []

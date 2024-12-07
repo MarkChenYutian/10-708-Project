@@ -1,0 +1,77 @@
+Trainer:
+  device: &device cuda
+  batch_size: 1
+  save_freq : 512
+
+  lr: 1.e-4
+  weight_decay: 1.e-4
+
+  niter_schedule:
+    opt_niter: [1, 2, 3, 4, 5]
+    opt_steps: [1024, 4096, 8192, 16384]
+
+
+System:
+  args:
+    numPoints: 800
+    match_cov_default: 0.25
+    edge_width: 16
+
+    optim:
+      vectorize: true
+      device: *device
+
+  obscov:
+    type: Modifier_Learning
+    args:
+      device    : *device
+      eval_mode : false
+      checkpoint:
+      match_cov_default: 0.25
+      min_flow_cov: 0.25
+      submodule: 
+        type: MatchCovariance
+        args:
+          device: *device
+          kernel_size: 15
+          match_cov_default: 0.25
+          min_depth_cov: 0.05
+          min_flow_cov: 0.25
+      modifier:
+        type: NaiveNetworkModifier
+        args:
+          device: *device
+          patch_size: 15
+  
+  keypoint:
+    type: GridSelector
+    args:
+      device: *device
+      mask_width: 32
+  
+  frontend:
+    type: CUDAGraph_FlowFormerCovFrontend
+    args:
+      device: *device
+      eval_mode: true
+      weight: ./Model/MACVO_FrontendCov.pth
+      dtype: fp32
+      max_flow: -1
+      enforce_positive_disparity: false
+  
+  optimizer:
+    type: PyPoseTwoFramePGO
+    args:
+      device: *device
+      vectorize: true
+      parallel: false
+
+
+Train:
+  data: !flatten_seq 
+    - !include ../../Sequence/Training_Dataset/TartanAirV2_Demo.yaml
+
+
+Evaluate:
+  data: !flatten_seq 
+    - !include ../../Sequence/Training_Dataset/TartanAirV2_Demo.yaml

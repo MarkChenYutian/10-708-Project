@@ -1,0 +1,96 @@
+Common:
+  # Some configurations are shared across multiple modules in Odometry, so I write them here.
+  device: &device cuda
+  max_depth: &max_depth auto
+
+Odometry:
+  name: MACVO_correct2
+  args:
+    # Device directive to the VO system
+    # NOTE: the system may not follow this device config strictly since some module
+    # e.g. those rely on PWC-Net, only support running on cuda device.
+    device: *device
+    edgewidth: 32
+    num_point: 200 # Upper bound of KPs in each frame
+
+    # Match covariance for keypoint on first observation (sub-pixel uncertainty
+    # caused by the quantized pixel)
+    match_cov_default: 0.25
+
+    # Profiling the system using torch, generate chrome json trace file.
+    profile: false
+
+  cov:
+    obs:
+      type: Modifier_Learning
+      args:
+        device    : *device
+        eval_mode : true
+        checkpoint: Results/CovLearner/12_04_043657/modifier_216576.pth
+        submodule: 
+          type: MatchCovariance
+          args: 
+            device: *device
+            kernel_size: 15
+            match_cov_default: 0.25
+            min_depth_cov: 0.05
+            min_flow_cov: 0.25
+        modifier:
+          type: ResidualCNNModifier
+          args:
+            device: *device
+            patch_size: 15
+
+  keypoint:
+    type: GridSelector
+    args:
+      device: *device
+      mask_width: 32
+
+  frontend:
+    type: CUDAGraph_FlowFormerCovFrontend
+    args:
+      device: *device
+      weight: ./Model/MACVO_FrontendCov.pth
+      dtype: fp32
+      max_flow: -1
+      enforce_positive_disparity: false
+
+  motion:
+    type: StaticMotionModel
+    args:
+
+  outlier:
+    type: FilterCompose
+    args:
+      filter_args:
+        - type: CovarianceSanityFilter
+          args:
+        - type: SimpleDepthFilter
+          args:
+            min_depth: 0.05
+            max_depth: *max_depth
+        - type: LikelyFrontOfCamFilter
+          args:
+  
+  postprocess:
+    type: DisplacementInterpolate
+    args:
+  
+  keyframe:
+    type: AllKeyframe
+    args:
+  
+  optimizer:
+    type: PyPoseTwoFramePGO
+    args:
+      device: cpu
+      vectorize: true
+      parallel: true
+
+Datas: !flatten_seq
+  - !include  ../../../Sequence/EuRoC.yaml
+  - !include ../../../Sequence/KITTI.yaml
+  - !include  ../../../Sequence/TartanAir2_Test.yaml
+
+Preprocess: []

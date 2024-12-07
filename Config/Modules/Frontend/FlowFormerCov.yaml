@@ -1,0 +1,7 @@
+type: FlowFormerCovFrontend
+args:
+  device: cuda
+  weight: ./Model/MACVO_FrontendCov.pth
+  use_jit: false
+  enforce_positive_disparity: false
+  dtype: fp32

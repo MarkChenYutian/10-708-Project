@@ -1,0 +1,112 @@
+Common:
+  # Some configurations are shared across multiple modules in Odometry, so I write them here.
+  device: &device cuda
+  max_depth: &max_depth auto
+
+Odometry:
+  name: UniMatchCov_small
+  args:
+    # Device directive to the VO system
+    # NOTE: the system may not follow this device config strictly since some module
+    # e.g. those rely on PWC-Net, only support running on cuda device.
+    device: *device
+    edgewidth: 32
+    num_point: 200 # Upper bound of KPs in each frame
+
+    # Match covariance for keypoint on first observation (sub-pixel uncertainty
+    # caused by the quantized pixel)
+    match_cov_default: 0.25
+
+    # Profiling the system using torch, generate chrome json trace file.
+    profile: false
+
+  cov:
+    obs:
+      type: MatchCovariance
+      args:
+        device: *device
+        kernel_size: 31
+        match_cov_default: 0.25
+        min_depth_cov: 0.05
+        min_flow_cov: 0.25
+
+  keypoint:
+    type: CovAwareSelector
+    args:
+      device: *device
+      kernel_size: 7
+      mask_width: 32
+      max_depth: *max_depth
+      max_depth_cov: 250.0
+      max_match_cov: 100.0
+
+  frontend:
+    type: UniMatchCovFrontend
+    args:
+      weight: ./Model/UniMatch/scale1latest.pth
+      device: *device
+      dtype : fp32
+      max_flow: 128
+      model :
+        args:
+          task: &task flow
+          reg_refine: false
+          num_scales: 1
+          feature_channels: 128
+          upsample_factor: 8
+          num_head: 1
+          ffn_dim_expansion: 4
+          num_transformer_layers: 6
+          cov_model: "FormerCovHead"
+      
+        fwd_args:
+          attn_type: swin
+          num_reg_refine: 0
+          attn_splits_list: [2]
+          corr_radius_list: [-1]
+          prop_radius_list: [-1]
+          task: *task
+
+
+  motion:
+    type: TartanMotionNet
+    args:
+      weight: ./Model/MACVO_posenet.pkl
+      device: *device
+
+  outlier:
+    type: FilterCompose
+    args:
+      verbose: false
+      filter_args:
+        - type: CovarianceSanityFilter
+          args:
+        - type: SimpleDepthFilter
+          args:
+            min_depth: 0.05
+            max_depth: *max_depth
+        - type: LikelyFrontOfCamFilter
+          args:
+  
+  postprocess:
+    type: DisplacementInterpolate
+    args:
+  
+  keyframe:
+    type: AllKeyframe
+    args:
+  
+  optimizer:
+    type: PyPoseTwoFramePGO
+    args:
+      device: cpu
+      vectorize: true
+      parallel: true
+
+Datas: !flatten_seq
+  - !include  ../../../Sequence/EuRoC.yaml
+  - !include ../../../Sequence/KITTI.yaml
+  - !include  ../../../Sequence/TartanAir2_Test.yaml
+
+
+Preprocess: []

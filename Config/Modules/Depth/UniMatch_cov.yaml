@@ -1,0 +1,23 @@
+type: UniMatchCovDepth
+args:
+  weight: ./Model/UniMatch/scale1latest.pth
+  device: cuda
+  model :
+    args:
+      task: &task flow
+      reg_refine: false
+      num_scales: 1
+      feature_channels: 128
+      upsample_factor: 8
+      num_head: 1
+      ffn_dim_expansion: 4
+      num_transformer_layers: 6
+      cov_model: "FormerCovHead"
+  
+    fwd_args:
+      attn_type: swin
+      num_reg_refine: 0
+      attn_splits_list: [2]
+      corr_radius_list: [-1]
+      prop_radius_list: [-1]
+      task: *task

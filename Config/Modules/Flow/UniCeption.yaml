@@ -1,0 +1,5 @@
+type: UniCeptionMatcher
+args:
+  device: cuda
+  weight: /home/yutianch/AirVIO/Model/UniCeption/checkpoints/examples/match_anything/ma_224_dpt_uniception1.ckpt
+  resolution: [224, 224]

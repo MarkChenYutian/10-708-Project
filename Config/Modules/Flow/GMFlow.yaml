@@ -1,0 +1,4 @@
+type: GMFlowMatcher
+args:
+  device: cuda
+  weight: ./Model/GMFlow/gmflow_sintel-0c07dcb3.pth

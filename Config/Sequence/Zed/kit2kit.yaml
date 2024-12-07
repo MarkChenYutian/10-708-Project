@@ -1,0 +1,14 @@
+type: Zed
+name: kit2kit
+args:
+  root: "/data2/datasets/yuhengq/zed_data/traverses/kit2kit"
+
+  # Camera Intrinsics
+  fx: 735.9240
+  fy: 735.7140
+  cx: 964.8520
+  cy: 622.2050
+  bl: 0.119981
+
+  width: 1920
+  height: 1200

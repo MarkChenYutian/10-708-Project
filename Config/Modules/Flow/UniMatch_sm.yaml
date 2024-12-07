@@ -1,0 +1,18 @@
+type: UniMatchMatcher
+args:
+  weight: ./Model/UniMatch/gmflow-scale1-mixdata.pth
+  device: cuda
+  task: flow
+  num_refine: 0
+
+  num_scales: 1
+  feature_channels: 128
+  upsample_factor: 8
+  num_head: 1
+  ffn_dim_expansion: 4
+  num_transformer_layer: 6
+  attn_type: swin
+
+  attn_splits_list: [2]
+  corr_radius_list: [-1]
+  prop_radius_list: [-1]
