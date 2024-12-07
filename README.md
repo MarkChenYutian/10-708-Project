@@ -1,5 +1,32 @@
-# <div align="center">MAC-VO: Metrics-aware Covariance for Learning-based Stereo Visual Odometry<br/><a href="https://mac-vo.github.io">Homepage</a> | <a href="https://arxiv.org/abs/2409.09479v1">arXiv</a></div> [![License: BSD 3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-yellow.svg)](./LICENSE) [![YouTube](https://img.shields.io/badge/YouTube-b31b1b?style=flat&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=O_HowJk-GDw)
+# MAC-Mod: Matric-Aware Covariance Modifier for Stereo Visual Odometry
 
+This is preliminary work on the learning-based covariance modifier for the 10-708 course project. The codebase is only published as per the course project requirement.
+
+**Disclaimer**: The commit is squashed into a single commit for security reasons as we used proprietary CI/CD tools and the repository is linked with other internal projects. Therefore, the authorship & contribution of GitHub does not accurately reflect the work distribution between the team members.
+
+**Disclaimer 2**: This is an internal work in progress, we will not provide any further update on this repository after Dec 6, 2024.
+
+## Run Training Script
+
+```bash
+python -m Train.CovModifier.Train --config ./Config/Train/CovModifier/AsModifier.yaml
+```
+
+## Run Experiments
+
+```bash
+python -m Scripts.Experiment.Experiment_MACVO --config ./Config/Experiment/MACVO/Mod/MACVO_corrector2.yaml
+```
+
+## Run Evaluation and Plotting
+
+```bash
+  $ python -m Evaluation.EvalSeq --spaces SPACE_0, [SPACE, ...]
+  $ python -m Evaluation.PlotSeq --spaces SPACE_0, [SPACE, ...]
+```
+
+---
+Below is the README.md content from MAC-VO.
 
 https://github.com/user-attachments/assets/f7f33f28-5de7-412b-8f60-b0fcab91d48e
 
